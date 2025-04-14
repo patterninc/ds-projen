@@ -1,4 +1,5 @@
 test-folder/
+example-project
 
 **/.DS_Store
 
@@ -11,4 +12,6 @@ wheels/
 *.egg-info
 
 # Virtual environments
-.venv
+*env
+*cache*
+

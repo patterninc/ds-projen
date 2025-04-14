@@ -1,10 +1,11 @@
-"""Modules for ds-projen."""
+"""Modules for `ds-projen`."""
 
-from .projects.ds_project.project import Domain, MetaflowProject
-from .projects.repository.project import Repository
+from .components.metaflow_project.metaflow_flow import MetaflowFlow
+from .components.metaflow_project.metaflow_project import MetaflowProject
+from .projects.repository.repository import Repository
 
 __all__ = [
-    "Domain",
-    "MetaflowProject",
     "Repository",
+    "MetaflowProject",
+    "MetaflowFlow",
 ]

@@ -4,8 +4,14 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 authors = [{ name = "avr2002", email = "avr13405@gmail.com" }]
-requires-python = ">=3.12"
-dependencies = ["jinja2>=3.1.6", "projen>=0.91.20"]
+requires-python = ">=3.9"
+dependencies = [
+    "jinja2>=3.1.6",
+    "projen>=0.91.20",
+    # added because Python does not have a built-in way to write toml;
+    # important for the pyproject.toml class
+    "tomlkit>=0.13.2",
+]
 
 [build-system]
 requires = ["hatchling"]
@@ -39,7 +45,7 @@ extend-select = [
 max-complexity = 10
 
 [dependency-groups]
-dev = ["mypy>=1.15.0", "ruff>=0.9.6"]
+dev = ["mypy>=1.15.0", "rich>=14.0.0", "ruff>=0.9.6"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
