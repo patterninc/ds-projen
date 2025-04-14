@@ -1,0 +1,45 @@
+[project]
+name = "ds-projen"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [{ name = "avr2002", email = "avr13405@gmail.com" }]
+requires-python = ">=3.12"
+dependencies = ["jinja2>=3.1.6", "projen>=0.91.20"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+
+# https://github.com/astral-sh/ruff?tab=readme-ov-file#configuration
+[tool.ruff]
+line-length = 119
+exclude = ['domains/advisory', 'domains/demand_generation']
+
+# https://docs.astral.sh/ruff/rules/
+[tool.ruff.lint]
+extend-select = [
+    # pycodestyle errors
+    "E",
+    # flake8-bugbear
+    "B",
+    # pylint equivalent rules
+    "PL",
+    # isort
+    "I",
+    # pydocstyle for docstrings
+    "D",
+    # pep8-naming
+    "N",
+]
+
+# https://docs.astral.sh/ruff/rules/#mccabe-c90
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[dependency-groups]
+dev = ["mypy>=1.15.0", "ruff>=0.9.6"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
