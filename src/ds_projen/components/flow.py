@@ -53,11 +53,11 @@ class Flow(Component):
 from metaflow import FlowSpec, step, {package_manager}
 
 @{package_manager}(
-    python_version="{python_version}",
+    python="{python_version}",
     packages={packages}
 )
 class {flow_name}(FlowSpec):
-    """A sample flow."""
+    """A sample flow."""\n
     @step
     def start(self):
         """Start the flow."""
