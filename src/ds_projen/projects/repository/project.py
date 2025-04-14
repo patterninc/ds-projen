@@ -47,6 +47,15 @@ class Repository(Project):
             renovatebot_options=None,
         )
         self.metaflow_projects: list["MetaflowProject"] = []
+        
+        # TODO: Add a pyproject.toml file at the root of the repo
+        # TODO: Add a README.md file at the root of the repo
+        # TODO: Add a pre-commit config file at the root level of the repo
+        # TODO: Add a `run` task runner
+        # TODO: .vscode directory
+        # TODO: Managing github worklfows for the projects
+        
+        # Add gitignore
         self.gitignore.add_patterns(*DEFAULT_GITIGNORE_PATTERNS)
 
     def post_synthesize(self) -> None:
