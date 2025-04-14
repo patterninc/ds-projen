@@ -1,6 +1,10 @@
+from pathlib import Path
 from typing import TYPE_CHECKING
 
-from projen import Project, GitAttributesFile
+from projen import Project
+
+from ds_projen.components.path_utils import get_project_dir
+from ds_projen.projects.repository.gitignore import DEFAULT_GITIGNORE_PATTERNS
 
 if TYPE_CHECKING:
     from ds_projen.projects.ds_project.project import MetaflowProject
@@ -43,3 +47,31 @@ class Repository(Project):
             renovatebot_options=None,
         )
         self.metaflow_projects: list["MetaflowProject"] = []
+        self.gitignore.add_patterns(*DEFAULT_GITIGNORE_PATTERNS)
+
+    def post_synthesize(self) -> None:
+        """React to the project being synthesized."""
+        _sort_gitignore_in_place(project=self)
+        return super().post_synthesize()
+
+
+def _sort_gitignore_in_place(project: Project):
+    repo_root_dir: Path = get_project_dir(project=project)
+    gitignore_fpath = repo_root_dir / ".gitignore"
+
+    # read the sorts lines
+    gitignore_lines = gitignore_fpath.read_text().splitlines()
+
+    # sort the lines
+    marker: str = gitignore_lines[0]
+    ignores: list[str] = gitignore_lines[1:]
+
+    # remove read only gitignore file
+    gitignore_fpath.unlink()
+
+    # write the lines to disk as a read only file
+    new_gitignore_lines = [marker] + sorted(ignores)
+    gitignore_fpath.write_text("\n".join(new_gitignore_lines))
+
+    # make gitignore read only
+    gitignore_fpath.chmod(0o444)
