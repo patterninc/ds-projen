@@ -60,10 +60,10 @@ def get_pyproject_toml_values(package_meta: PythonPackageMetadata) -> dict:
             "description": package_meta.description,
             "readme": "README.md",
             "requires-python": package_meta.requires_python,
-            "dependencies": package_meta.dependencies,
+            "dependencies": package_meta.dependencies + ["outerbounds"],
         },
         "dependency-groups": {
-            "dev": package_meta.dev_dependencies,
+            "dev": package_meta.dev_dependencies + ["pytest"],
         },
         "tool": {"pytest": {"ini_options": {"pythonpath": ["."]}}},
     }

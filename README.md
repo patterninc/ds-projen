@@ -1,14 +1,53 @@
 # DS Projen
 
+
+```python
+# Sample .projenrc.py file
+
+from ds_projen import Domain, MetaflowProject, Repository
+
+repo = Repository(name="data-science-projects")
+
+project = MetaflowProject(
+    repo=repo,
+    name="nlp-project",
+    description="Test DS project",
+    version="0.0.0",
+    domain=Domain.CONTENT,
+    dependencies=["numpy", "pandas"],
+    dev_dependencies=["pytest"],
+)
+
+project.add_flow(
+    flow_name="nlp_flow",
+    relative_flow_path="nlp_flow.py",
+    use_conda_base=True,
+    python_version="3.11",
+    packages={"numpy": "1.23.5", "pandas": "1.4.2"},
+)
+
+_ = MetaflowProject(
+    repo=repo,
+    name="new-project",
+    description="Test DS project2",
+    domain=Domain.ADVERTISING,
+)
+
+repo.synth()
+```
+
+
+// TODO: Clean up the README
+
+
 ```sh
 # Monorepo directory structure
 
 data-science-projects
 ├── .github
 │   ├── workflows
+│   │   ├── {{ project-ci-cd }}.yaml
 │   │   ├── code-quality-checks.yaml
-│   │   ├── market-intelligence-buybox-predictor.yaml
-│   │   ├── niche-insights.yaml
 │   │   └── terraform-ci-cd-prod.yml
 │   └── CODEOWNERS
 ├── deployment/
@@ -99,11 +138,14 @@ nlp_project = MetaflowProject(
 
 # Add a flow to the project
 nlp_project.add_flow(
-    relative_flow_path="flow.py",   # relative to the project root
-    runs_in_ci=True,
-    config_relative_file_path_prod="configs/prod.json",       # used in CI for deploying the flow i.e., creating an Agro workflow
-    config_relative_file_path_non_prod="configs/dev.json",    # can be used in CI to test run the flow; flow will run with `--with kubernetes` flag
-    config_relative_file_path_ci="configs/dev.json",          # if provided, flow will run in CI with this config
+    flow_name="NLPFlow",                                      # name of the flow
+    relative_flow_path="flow.py",                             # relative to the project root
+    use_pypi_base=True,                                       # bool, if True, pypi_base decorator will be used (default: True)
+    use_conda_base=None,                                      # bool, if True, conda_base decorator will be used (default: None)
+    # runs_in_ci=True,
+    # prod_config_relative_file_path="configs/prod.json",       # used in CI for deploying the flow i.e., creating an Agro workflow
+    # non_prod_config_relative_file_path="configs/dev.json",    # can be used in CI to test run the flow; flow will run with `--with kubernetes` flag
+    # config_relative_file_path_ci="configs/dev.json",          # if provided, flow will run in CI with this config
 )
 # Add gitignore
 repo.gitignore.add_patterns(
@@ -159,6 +201,36 @@ dev = {{ list_of_dev_dependencies }}
 pythonpath = ["."]
 ```
 
+
+```python
+# Sample metaflow py file
+
+from metaflow import Config, FlowSpec, pypi_base, step
+
+
+@pypi_base(
+    python={{ python_version }},
+    packages={{ dict_of_dependencies }},
+)
+class {{ flow_name }}(FlowSpec):
+    """A sample flow for {{ project_name }}."""
+
+    config = Config(name="config", default={{ non_prod_config_relative_file_path }})
+
+    @step
+    def start(self):
+        """Start the flow."""
+        self.next(self.end)
+
+    @step
+    def end(self):
+        """End the flow."""
+        pass
+
+
+if __name__ == "__main__":
+    {{ flow_name }}()
+```
 
 
 ```yaml

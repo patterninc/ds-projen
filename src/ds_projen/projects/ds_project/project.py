@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Annotated
 
 from projen import Component
 
+from ds_projen.components.flow import Flow
 from ds_projen.components.lazy_sample_file import LazySampleFile
 from ds_projen.components.pyproject_toml import PyprojectToml, PythonPackageMetadata
 from ds_projen.components.readme import Readme
@@ -93,6 +94,44 @@ class MetaflowProject(Component):
             package_name=self.name,
             file_path=self.outdir / "README.md",
         )
+
+        self.flows: list[Flow] = []
+
+    def add_flow(  # noqa: PLR0913 -- Too many arguments in function definition
+        self,
+        flow_name: str,
+        relative_flow_path: str | Path,
+        use_pypi_base: bool | None = True,
+        use_conda_base: bool | None = None,
+        python_version: str | None = "3.11",
+        packages: dict[str, str] = {},  # noqa: B006 -- Do not use mutable data structures for argument defaults
+    ) -> None:
+        """Add a new flow to the project.
+
+        :param flow_name: Name of the flow to add.
+        :param relative_flow_path: File path of the flow relative to the project root.
+        :param use_pypi_base: Use the pypi_base decorator.
+        :param use_conda_base: Use the conda_base decorator.
+        :param python_version: Python version to use.
+        :param packages: Packages to use in the flow.
+        """
+        # TODO: Validate flow name
+        # TODO: Validate packages dictionary
+        # if packages:
+        #     packages = validate_metaflow_packages(packages)
+
+        # TODO: Validate if the flow path is relative to the project root
+        flow_path = self.outdir / relative_flow_path
+        flow = Flow(
+            project=self.repo,
+            flow_name=flow_name,
+            flow_path=flow_path,
+            use_pypi_base=use_pypi_base,
+            use_conda_base=use_conda_base,
+            python_version=python_version,
+            packages=packages,
+        )
+        self.flows.append(flow)
 
 
 class Domain(str, Enum):

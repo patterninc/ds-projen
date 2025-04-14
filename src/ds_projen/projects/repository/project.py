@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from projen import Project
+from projen import Project, GitAttributesFile
 
 if TYPE_CHECKING:
     from ds_projen.projects.ds_project.project import MetaflowProject
@@ -13,7 +13,12 @@ class Repository(Project):
     that other components such as `MetaflowProject`s can be added to.
     """
 
-    def __init__(self, name: str, outdir: str | None = None, parent: Project | None = None) -> None:
+    def __init__(
+        self,
+        name: str,
+        outdir: str | None = None,
+        parent: Project | None = None,
+    ) -> None:
         """Initialize a mono-repo project.
 
         Use this project as a collection for other projects.
