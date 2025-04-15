@@ -56,10 +56,11 @@ class PyprojectToml(Component):
         self.pyproject_toml_file = TomlFile(
             project=self.project,
             file_path=str(file_path),
-            readonly=False,  # we want `uv add` to work
             committed=True,
             marker=True,
             obj=contents,
+            # we want `uv add` to work so the file can't be readonly; but projen will still overwrite it
+            readonly=False,
         )
 
 

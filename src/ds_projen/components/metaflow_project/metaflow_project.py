@@ -2,11 +2,15 @@
 
 import re
 from pathlib import Path
+from textwrap import dedent
 from typing import TYPE_CHECKING
 
 from projen import Component
 
 from ds_projen.components.lazy_sample_file import LazySampleFile
+from ds_projen.components.metaflow_project.ci_cd_github_actions_workflow import (
+    MetaflowProjectCiCdGitHubActionsWorkflow,
+)
 from ds_projen.components.metaflow_project.consts import DATA_SCIENCE_DOMAINS, TDataScienceDomain
 from ds_projen.components.metaflow_project.metaflow_flow import MetaflowFlow
 from ds_projen.components.pyproject_toml import PyprojectToml
@@ -44,19 +48,28 @@ class MetaflowProject(Component):
         """
         super().__init__(repo)
 
-        assert_is_valid_domain(domain=domain)
-        self.outdir = Path("domains") / domain / (outdir or name)
+        # validate inputs
+        assert__project_name__is_valid(name)
+        assert__domain__is_valid(domain)
+        if import_module_name:
+            assert__import_module_name__is_valid(import_module_name)
 
+        # store inputs as attrs
+        self.outdir = Path("domains") / domain / (outdir or name)
+        self.domain = domain
         self.repo: "Repository" = repo
-        self.name = validate_project_name(name)
-        self.import_module_name = (
-            validate_import_module_name(import_module_name) if import_module_name else self.name.replace("-", "_")
-        )
+        self.name = name
+        self.import_module_name = name.replace("-", "_") if not import_module_name else import_module_name
         self.src_dir = self.outdir / "src"
         self.package_dir = self.src_dir / self.import_module_name
 
         # register self as project on the parent directory
         repo.metaflow_projects.append(self)
+        self.flows: list[MetaflowFlow] = []
+
+        ################################
+        # --- Add child components --- #
+        ################################
 
         self.init_py = LazySampleFile(
             self.repo,
@@ -77,8 +90,6 @@ class MetaflowProject(Component):
             file_path=self.outdir / "README.md",
         )
 
-        self.flows: list[MetaflowFlow] = []
-
     def add_flow(  # noqa: PLR0913 -- Too many arguments in function definition
         self,
         filename: str,
@@ -92,10 +103,37 @@ class MetaflowProject(Component):
             filename=filename,
         )
 
+    def pre_synthesize(self) -> None:
+        """Run validations before synthesizing the files."""
+        if len(self.flows) == 0:
+            err_msg = dedent(f"""\n\n
+            ==========================
+
+            💡 No flows found in the project MetaflowProject(name="{self.name}") in `.projenrc.py`.
+
+            You likely set up the MetaflowProject() correctly. 
+            
+            But it does not make sense to have a MetaflowProject with out at least one flow.
+
+            Register a flow with `my_metaflow_project.add_flow(filename="my_flow.py")`.
+            """)
+            raise ValueError(err_msg)
+
+        """Add final components before synthesizing the files.
+
+        The github actions workflow must be created after all the flows are added.
+
+        I.e. after `some_project.add_flow(filename="some_flow.py")` has been called.
+
+        So it cannot be called in the __init__() method because the flows have not
+        been added yet.
+        """
+        self.ci_cd_workflow = MetaflowProjectCiCdGitHubActionsWorkflow(metaflow_project=self)
+
 
 def get_package_description(domain: TDataScienceDomain) -> str:
     """Return `A metaflow flow. For questions, reach out to <lead 1>, ..., or <lead N>.`."""
-    assert_is_valid_domain(domain)
+    assert__domain__is_valid(domain)
     domain_leads = DATA_SCIENCE_DOMAINS[domain]
     if len(domain_leads) > 1:
         leads = ", ".join(domain_leads[:-1]) + f", or {domain_leads[-1]}"
@@ -104,13 +142,13 @@ def get_package_description(domain: TDataScienceDomain) -> str:
     return f"A metaflow flow. For questions, reach out to {leads}."
 
 
-def assert_is_valid_domain(domain: str) -> None:
+def assert__domain__is_valid(domain: str) -> None:
     """Validate the domain string and convert it to a Domain enum."""
     if domain not in DATA_SCIENCE_DOMAINS.keys():
         raise ValueError(f"Invalid domain: {domain}. Must be one of {', '.join(DATA_SCIENCE_DOMAINS.keys())}")
 
 
-def validate_project_name(name: str) -> str:
+def assert__project_name__is_valid(name: str):
     """Validate and normalize project name.
 
     Rules:
@@ -123,14 +161,11 @@ def validate_project_name(name: str) -> str:
     # TODO: Regex can be improved, write tests for it
     pattern = r"^[a-z][a-z-]*[a-z]$"
     if not re.match(pattern, name):
-        raise ValueError(
-            "Project name must:\n- Only contain lowercase letters and hyphens\n- Start and end with a letter"
-        )
-
-    return name
+        err_msg = "Project name must:\n- Only contain lowercase letters and hyphens\n- Start and end with a letter"
+        raise ValueError(err_msg)
 
 
-def validate_import_module_name(name: str) -> str:
+def assert__import_module_name__is_valid(name: str) -> str:
     """Validate and normalize import module name.
 
     Rules:
@@ -149,24 +184,3 @@ def validate_import_module_name(name: str) -> str:
         )
 
     return name
-
-
-"""
-CI-CD
-
-CI:
-- lint (run pre-commit)
-- test (run pytest)
-- backtesting?
-
-CD:
-- 
-- deploy to outerbounds
-    - to `default` if branch != main
-    - to `prod` if branch == main
-
-
-Options:
-- on merge to main, automatically deploy the latest dag version
-- OR manually trigger the deployment of the flow (via workflow dispatch)
-"""

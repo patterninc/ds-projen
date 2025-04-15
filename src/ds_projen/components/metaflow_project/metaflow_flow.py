@@ -24,10 +24,10 @@ class MetaflowFlow(Component):
 
         scope.flows.append(self)  # register self to the parent project
         self.flow_path = scope.src_dir / filename  # create self in the parent's src/ dir
+        self.flow_name = get_flow_class_name_from_filepath(flow_path=self.flow_path)
 
         def get_flow_template():
-            flow_name = get_flow_class_name_from_filepath(flow_path=self.flow_path)
-            return self._get_flow_template(flow_name=flow_name)
+            return self._get_flow_template(flow_name=self.flow_name)
 
         self._flow_file = LazySampleFile(
             project=scope.project,

@@ -1,3 +1,5 @@
+"""Constants for the MetaflowProject component."""
+
 from typing import Literal
 
 DATA_SCIENCE_DOMAINS = {
