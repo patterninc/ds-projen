@@ -74,6 +74,9 @@ class MetaflowProjectCiCdGitHubActionsWorkflow(Component):
                     }
                 },
             },
+            "env": {
+                "WORKDIR": self.working_directory,
+            },
             "jobs": {
                 "lint": self._get_lint_job(),
                 "test": self._get_test_job(),
@@ -105,7 +108,7 @@ class MetaflowProjectCiCdGitHubActionsWorkflow(Component):
             "name": "Run Linter (pre-commit)",
             "if": "github.event_name != 'workflow_dispatch'",
             "runs-on": "ubuntu-latest",
-            "defaults": {"run": {"working-directory": self.working_directory}},
+            "defaults": {"run": {"working-directory": "${{ env.WORKDIR }}"}},
             "steps": [
                 {"uses": "actions/checkout@v4"},
                 {
@@ -113,10 +116,10 @@ class MetaflowProjectCiCdGitHubActionsWorkflow(Component):
                     "uses": "astral-sh/setup-uv@v5",
                     "with": {
                         "enable-cache": True,
-                        "cache-dependency-glob": f"${{{{ github.workspace }}}}/{self.working_directory}/uv.lock",
+                        "cache-dependency-glob": "${{ env.WORKDIR }}/uv.lock",
                     },
                 },
-                {"name": "Run pre-commit", "run": f"uv run pre-commit run --files {self.working_directory}/**"},
+                {"name": "Run pre-commit", "run": "uv run pre-commit run --files ${{ env.WORKDIR }}/**"},
             ],
         }
 
@@ -126,7 +129,7 @@ class MetaflowProjectCiCdGitHubActionsWorkflow(Component):
             "name": "Run tests",
             "if": "github.event_name != 'workflow_dispatch'",
             "runs-on": "ubuntu-latest",
-            "defaults": {"run": {"working-directory": self.working_directory}},
+            "defaults": {"run": {"working-directory": "${{ env.WORKDIR }}"}},
             "steps": [
                 {"uses": "actions/checkout@v4"},
                 {
@@ -134,7 +137,7 @@ class MetaflowProjectCiCdGitHubActionsWorkflow(Component):
                     "uses": "astral-sh/setup-uv@v5",
                     "with": {
                         "enable-cache": True,
-                        "cache-dependency-glob": f"${{{{ github.workspace }}}}/{self.working_directory}/uv.lock",
+                        "cache-dependency-glob": "${{ env.WORKDIR }}/uv.lock",
                     },
                 },
                 {"name": "Run pytest", "run": "uv run pytest tests/"},
@@ -148,7 +151,7 @@ class MetaflowProjectCiCdGitHubActionsWorkflow(Component):
             "if": "github.event_name == 'push' && github.ref == 'refs/heads/main'",
             "needs": ["lint", "test"],
             "runs-on": "ubuntu-latest",
-            "defaults": {"run": {"working-directory": self.working_directory}},
+            "defaults": {"run": {"working-directory": "${{ env.WORKDIR }}"}},
             "permissions": {"contents": "read", "id-token": "write"},
             "steps": [
                 {"uses": "actions/checkout@v4"},
@@ -157,21 +160,32 @@ class MetaflowProjectCiCdGitHubActionsWorkflow(Component):
                     "name": "Configure Outerbounds Auth",
                     "run": dedent(f"""\
                             uvx outerbounds service-principal-configure \\
-                            --name {PROD_OUTERBOUNDS_USERNAME} \\
-                            --deployment-domain pattern.obp.outerbounds.com \\
-                            --perimeter {PROD_PERIMETER} \\
-                            --github-actions"""),
+                                --name {PROD_OUTERBOUNDS_USERNAME} \\
+                                --deployment-domain pattern.obp.outerbounds.com \\
+                                --perimeter {PROD_PERIMETER} \\
+                                --github-actions"""),
+                },
+                {
+                    "name": "Run Dev Flow",
+                    "run": dedent(f"""\
+                            uv run src/{flow_file_name} \\
+                                --config ./configs/dev.json \\
+                                --environment=fast-bakery \\
+                                --package-suffixes='{PACKAGE_SUFFIXES}' \\
+                                run \\
+                                --with kubernetes \\
+                                --tag auto-trigger-from-pr"""),
                 },
                 {
                     "name": "Deploy Prod Flow",
                     "run": dedent(f"""\
                             uv run src/{flow_file_name} \\
-                            --config ./configs/prod.json \\
-                            --environment=fast-bakery \\
-                            --package-suffixes='{PACKAGE_SUFFIXES}' \\
-                            --production \\
-                            argo-workflows create"""),
-                },
+                                --config ./configs/prod.json \\
+                                --environment=fast-bakery \\
+                                --package-suffixes='{PACKAGE_SUFFIXES}' \\
+                                --production \\
+                                argo-workflows create"""),
+                    },
             ],
         }
 
@@ -217,7 +231,8 @@ class MetaflowProjectCiCdGitHubActionsWorkflow(Component):
                             --environment=fast-bakery \\
                             --package-suffixes='{PACKAGE_SUFFIXES}' \\
                             run \\
-                            --tag manual-trigger
+                            --with kubernetes \\
+                            --tag manual-trigger-from-ci
                         fi"""),
                 }
             )
@@ -226,7 +241,7 @@ class MetaflowProjectCiCdGitHubActionsWorkflow(Component):
             "name": "Manual Deploy All Flows (Dev or Prod)",
             "if": "github.event_name == 'workflow_dispatch'",
             "runs-on": "ubuntu-latest",
-            "defaults": {"run": {"working-directory": self.working_directory}},
+            "defaults": {"run": {"working-directory": "${{ env.WORKDIR }}"}},
             "permissions": {"contents": "read", "id-token": "write"},
             "steps": steps,
         }
