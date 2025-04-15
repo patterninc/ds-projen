@@ -84,6 +84,7 @@ class MetaflowProject(Component):
             description=get_package_description(domain=domain),
             package_name=self.name,
             requires_python=requires_python,
+            default_dependencies=["outerbounds"],
         )
 
         self.readme = Readme(

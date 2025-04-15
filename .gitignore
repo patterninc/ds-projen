@@ -1,5 +1,6 @@
 test-folder/
 example-project
+*test-reports
 
 **/.DS_Store
 

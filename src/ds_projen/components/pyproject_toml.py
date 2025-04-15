@@ -30,12 +30,16 @@ class PyprojectToml(Component):
         package_name: str,
         description: str,
         file_path: Union[str, Path] = "pyproject.toml",
-        requires_python: str = ">=3.9",
+        requires_python: str | None = None,
+        default_dependencies: list[str] | None = None,
     ) -> None:
         super().__init__(project)
         self.package_name = package_name
         self.description = description
         self.file_path = Path(file_path)
+
+        default_dependencies = default_dependencies or []
+        requires_python = requires_python or ">=3.9"
 
         # before projen replaces the old `pyproject.toml` (at synth time),
         # we read its original contents from disk so we can grab any dependencies
@@ -45,6 +49,11 @@ class PyprojectToml(Component):
         dependencies, dependency_groups = _try_get_deps_from_existing_pyproject_toml(
             pyproject_toml_fpath=self.file_path,
         )
+
+        # on first synth, add these starter dependencies
+        if not dependencies:
+            dependencies = deepcopy(default_dependencies)
+            
         contents: dict = get_pyproject_toml_values(
             package_name=self.package_name,
             description=self.description,

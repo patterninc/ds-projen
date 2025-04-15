@@ -45,7 +45,45 @@ extend-select = [
 max-complexity = 10
 
 [dependency-groups]
-dev = ["mypy>=1.15.0", "rich>=14.0.0", "ruff>=0.9.6"]
+dev = [
+    "mypy>=1.15.0",
+    "rich>=14.0.0",
+    "ruff>=0.9.6",
+    "pytest>=8.3.5",
+    "pytest-cov",
+]
 
-[tool.pytest.ini_options]
-pythonpath = ["."]
+[tool.coverage.run]
+branch = true
+
+[tool.coverage.paths]
+source = ["src/"]
+
+[tool.coverage.report]
+show_missing = true
+omit = ["tests/artifacts/*"]
+exclude_also = [
+    "pragma: no cover",
+    "if False",
+    "def __repr__",
+    "if self.debug",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "raise MemoryError",
+    "except DistributionNotFound",
+    "except ImportError",
+    "@abc.abstractmethod",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "if typing.TYPE_CHECKING:",
+    "if TYPE_CHECKING:",
+]
+
+[tool.coverage.html]
+directory = "test-reports/htmlcov"
+
+[tool.coverage.xml]
+output = "test-reports/coverage.xml"
+
+[tool.coverage.json]
+output = "test-reports/coverage.json"
