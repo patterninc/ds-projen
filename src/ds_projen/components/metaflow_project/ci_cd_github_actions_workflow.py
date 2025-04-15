@@ -119,7 +119,7 @@ class MetaflowProjectCiCdGitHubActionsWorkflow(Component):
                         "cache-dependency-glob": "${{ env.WORKDIR }}/uv.lock",
                     },
                 },
-                {"name": "Run pre-commit", "run": "uv run pre-commit run --files ${{ env.WORKDIR }}/**"},
+                {"name": "Run pre-commit", "run": "SKIP=no-commit-to-branch uv run pre-commit run --files ${{ env.WORKDIR }}/**"},
             ],
         }
 
