@@ -82,10 +82,10 @@ class MetaflowProjectCiCdGitHubActionsWorkflow(Component):
 
         # Add auto-deploy jobs for each flow
         for flow in self.metaflow_project.flows:
-            flow_id = flow.flow_path.name.replace(".", "_")
-            workflow_content["jobs"][f"auto-deploy-{flow_id}"] = self._get_auto_deploy_job(
-                flow_id=flow_id,
-                flow_fname=flow.flow_path.name,
+            job_id_suffix = flow.flow_path.name.replace(".", "_")
+            workflow_content["jobs"][f"auto-deploy--{job_id_suffix}"] = self._get_auto_deploy_job(
+                job_id_suffix=job_id_suffix,
+                flow_file_name=flow.flow_path.name,
             )
 
         # Add manual-deploy job that deploys all flows
@@ -96,7 +96,7 @@ class MetaflowProjectCiCdGitHubActionsWorkflow(Component):
             scope=self,
             file_path=f".github/workflows/{workflow_name}",
             obj=workflow_content,
-            marker=False,  # No marker comment at the top
+            marker=True,
         )
 
     def _get_lint_job(self) -> dict:
@@ -141,10 +141,10 @@ class MetaflowProjectCiCdGitHubActionsWorkflow(Component):
             ],
         }
 
-    def _get_auto_deploy_job(self, flow_id: str, flow_fname: str) -> dict:
+    def _get_auto_deploy_job(self, job_id_suffix: str, flow_file_name: str) -> dict:
         """Get the auto-deploy job configuration for a specific flow."""
         return {
-            "name": f"Auto-deploy {flow_id} to prod (on merge to main)",
+            "name": f"Auto-deploy {job_id_suffix} to prod (on merge to main)",
             "if": "github.event_name == 'push' && github.ref == 'refs/heads/main'",
             "needs": ["lint", "test"],
             "runs-on": "ubuntu-latest",
@@ -165,7 +165,7 @@ class MetaflowProjectCiCdGitHubActionsWorkflow(Component):
                 {
                     "name": "Deploy Prod Flow",
                     "run": dedent(f"""\
-                            uv run src/{flow_fname} \\
+                            uv run src/{flow_file_name} \\
                             --config ./configs/prod.json \\
                             --environment=fast-bakery \\
                             --package-suffixes='{PACKAGE_SUFFIXES}' \\

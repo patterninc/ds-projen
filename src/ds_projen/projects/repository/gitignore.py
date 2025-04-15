@@ -1,6 +1,7 @@
 """Gitignore statements common for all of our projects."""
 
 DEFAULT_GITIGNORE_PATTERNS = {
+    "*cache*",
     # the top-level uv.lock is not needed, but project-level lockfiles should be committed
     "/uv.lock",
     # metaflow artifacts

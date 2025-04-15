@@ -22,6 +22,8 @@ class MetaflowFlow(Component):
     ) -> None:
         super().__init__(scope)
 
+        assert_flow_filename_is_valid(filename=filename)
+
         scope.flows.append(self)  # register self to the parent project
         self.flow_path = scope.src_dir / filename  # create self in the parent's src/ dir
         self.flow_name = get_flow_class_name_from_filepath(flow_path=self.flow_path)
@@ -66,6 +68,26 @@ class MetaflowFlow(Component):
             ''')
 
         return flow_template
+
+
+def assert_flow_filename_is_valid(filename: str):
+    """Assert that the flow name is valid.
+
+    A valid flow name must be a valid Python identifier.
+    """
+    if not filename.endswith(".py"):
+        raise ValueError(f"Invalid flow filename: {filename}. Flow filenames must end with '_flow.py'.")
+
+    flow_name = filename[:-3]
+    if not flow_name.isidentifier():
+        raise ValueError(
+            f"Invalid flow name: {flow_name}. Flow names must be valid Python identifiers. E.g. lower_snake_case_flow.py"
+        )
+
+    if not flow_name.endswith("_flow"):
+        raise ValueError(
+            f"Invalid flow name: {flow_name}. Flow names must end with '_flow.py'. E.g. lower_snake_case_flow.py"
+        )
 
 
 def get_flow_class_name_from_filepath(flow_path: str | Path) -> str:

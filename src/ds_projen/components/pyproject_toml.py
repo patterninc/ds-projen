@@ -30,6 +30,7 @@ class PyprojectToml(Component):
         package_name: str,
         description: str,
         file_path: Union[str, Path] = "pyproject.toml",
+        requires_python: str = ">=3.9",
     ) -> None:
         super().__init__(project)
         self.package_name = package_name
@@ -49,6 +50,7 @@ class PyprojectToml(Component):
             description=self.description,
             dependencies=dependencies,
             dependency_groups=dependency_groups,
+            requires_python=requires_python,
         )
 
         # Refer to these docs to see why we set this up the way we do:
@@ -102,6 +104,7 @@ def get_pyproject_toml_values(
     description: str,
     dependencies: list[str],
     dependency_groups: dict[str, list[str]],
+    requires_python: str,
 ) -> dict:
     """Construct the values to be written to the `pyproject.toml` file."""
     return {
@@ -114,10 +117,10 @@ def get_pyproject_toml_values(
             "version": "0.0.0",
             "description": description,
             "readme": "README.md",
-            "requires-python": ">=3.9",
-            "dependencies": [*dependencies],
+            "requires-python": requires_python,
+            "dependencies": deepcopy(dependencies),
         },
-        "dependency-groups": {**dependency_groups},
+        "dependency-groups": deepcopy(dependency_groups),
         "tool": {"pytest": {"ini_options": {"pythonpath": ["."]}}},
     }
 

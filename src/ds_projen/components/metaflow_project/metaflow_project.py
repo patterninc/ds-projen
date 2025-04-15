@@ -31,6 +31,7 @@ class MetaflowProject(Component):
         domain: TDataScienceDomain,
         import_module_name: str | None = None,
         outdir: Path | str | None = None,
+        requires_python: str | None = None,
     ) -> None:
         """Initialize a new Python package project.
 
@@ -82,6 +83,7 @@ class MetaflowProject(Component):
             file_path=self.outdir / "pyproject.toml",
             description=get_package_description(domain=domain),
             package_name=self.name,
+            requires_python=requires_python,
         )
 
         self.readme = Readme(
