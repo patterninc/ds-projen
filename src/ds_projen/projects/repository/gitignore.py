@@ -1,6 +1,11 @@
 """Gitignore statements common for all of our projects."""
 
 DEFAULT_GITIGNORE_PATTERNS = {
+    # Terraform modules
+    "**/.terraform",
+    # Ignoring catboost cache
+    "**/catboost_info",
+    # general cache files glob
     "*cache*",
     # the top-level uv.lock is not needed, but project-level lockfiles should be committed
     "/uv.lock",
@@ -89,7 +94,7 @@ DEFAULT_GITIGNORE_PATTERNS = {
     # pyenv
     #   For a library or package, you might want to ignore these files since the code is
     #   intended to run in multiple environments; otherwise, check them in:
-    ".python-version",
+    # ".python-version",
     # pipenv
     #   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
     #   However, in case of collaboration, if having platform-specific dependencies or dependencies
@@ -128,7 +133,7 @@ DEFAULT_GITIGNORE_PATTERNS = {
     ".pytype/",
     # Cython debug symbols
     "cython_debug/",
-    # pycharm
+    # pycharm -- https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore
     ".idea",
     # vscode
     ".!vscode/example-settings.json",
