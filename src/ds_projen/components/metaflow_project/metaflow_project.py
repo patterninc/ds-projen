@@ -11,10 +11,11 @@ from ds_projen.components.lazy_sample_file import LazySampleFile
 from ds_projen.components.metaflow_project.ci_cd_github_actions_workflow import (
     MetaflowProjectCiCdGitHubActionsWorkflow,
 )
-from ds_projen.components.metaflow_project.consts import DATA_SCIENCE_DOMAINS, TDataScienceDomain
+from ds_projen.components.metaflow_project.consts import DATA_SCIENCE_DOMAINS, REQUIRES_PYTHON, TDataScienceDomain
 from ds_projen.components.metaflow_project.metaflow_flow import MetaflowFlow
 from ds_projen.components.pyproject_toml import PyprojectToml
 from ds_projen.components.readme import Readme
+from ds_projen.samples.python_tests.sample import SampleProjectTestingFramework
 
 if TYPE_CHECKING:
     from ds_projen.projects.repository.repository import Repository
@@ -31,7 +32,7 @@ class MetaflowProject(Component):
         domain: TDataScienceDomain,
         import_module_name: str | None = None,
         outdir: Path | str | None = None,
-        requires_python: str | None = None,
+        requires_python: str = REQUIRES_PYTHON,
     ) -> None:
         """Initialize a new Python package project.
 
@@ -90,6 +91,11 @@ class MetaflowProject(Component):
             project=self.repo,
             package_name=self.name,
             file_path=self.outdir / "README.md",
+        )
+
+        self.tests_dir = SampleProjectTestingFramework(
+            scope=self.repo,
+            tests_outdir=self.outdir,
         )
 
     def add_flow(  # noqa: PLR0913 -- Too many arguments in function definition
