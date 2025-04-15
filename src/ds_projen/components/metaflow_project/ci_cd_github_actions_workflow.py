@@ -1,27 +1,16 @@
 """CI-CD.
 
-CI: runs when (a) PR-opened and (b) new code pushed
-- lint (run pre-commit)
-- test (run pytest)
-- backtesting?
+| Trigger           | Lint/Test? (CI) | Auto Deploy? | Environment                                                          |
+| ----------------- | --------------- | ------------ | -------------------------------------------------------------------- |
+| PR (open/sync)    | ✅ Yes           | ❌ No         | But you can use `workflow_dispatch` to deploy to `dev`                                                                |
+| Merge to main     | ✅ Yes           | ✅ Yes        | `prod`                                                                 |
+| Workflow dispatch | ❌ No            | ✅ Yes        | choice: `main` => `dev` or `prod`; `!main` => `dev` |
 
-CD:
-- main can deploy to Prod or Staging
-- feature branches can deploy to Staging
-- main is auto-deployed to Prod on new code pushed, e.g. post merge
-- Staging can be manually cleaned up on workflow dispatch
-
-- deploy to outerbounds
-    - to `default` perimeter with `data-science-projects-dev` outerbounds user if
-        - branch != main
-        - OR if environment == dev and workflow_dispatch is triggered
-    - to `prod` perimeter with `data-science-projects-prod` outerbounds user if
-        - branch == main
-        - AND environment == prod and workflow_dispatch is triggered
-
-Options:
-- on merge to main, automatically deploy the latest dag version
-- OR manually trigger the deployment of the flow (via workflow dispatch)
+| Trigger        | Branch  | Outerbounds User             | Perimeter |
+| -------------- | ------- | ---------------------------- | --------- |
+| PR (open/sync) | `!main` | `data-science-projects-dev`  | `default` |
+| Merge to main  | `main`  | `data-science-projects-prod` | `prod`    |
+| Workflow dispatch | any  | depends                      | depends   |
 """
 
 from textwrap import dedent
@@ -32,13 +21,18 @@ from projen import Component, YamlFile
 if TYPE_CHECKING:
     from ds_projen.components.metaflow_project.metaflow_project import MetaflowProject
 
-# Constants for Outerbounds usernames
+
 PROD_OUTERBOUNDS_USERNAME = "data-science-projects-prod"
 DEV_OUTERBOUNDS_USERNAME = "data-science-projects-dev"
-
-# Constants for Outerbounds perimeters
 PROD_PERIMETER = "prod"
 DEFAULT_PERIMETER = "default"
+PACKAGE_SUFFIXES: str = ",".join(
+    [
+        ".csv",
+        ".sql",
+        ".json",
+    ]
+)
 
 
 class MetaflowProjectCiCdGitHubActionsWorkflow(Component):
@@ -61,8 +55,14 @@ class MetaflowProjectCiCdGitHubActionsWorkflow(Component):
         workflow_content = {
             "name": f"{self.metaflow_project.domain}/{self.metaflow_project.name} (CI/CD)",
             "on": {
-                "push": {"branches": ["main"]},
-                "pull_request": {"types": ["opened", "synchronize"]},
+                "push": {
+                    "branches": ["main"],
+                    "paths": [f"{self.working_directory}/**", f".github/workflows/{workflow_name}"],
+                },
+                "pull_request": {
+                    "types": ["opened", "synchronize"],
+                    "paths": [f"{self.working_directory}/**", f".github/workflows/{workflow_name}"],
+                },
                 "workflow_dispatch": {
                     "inputs": {
                         "environment": {
@@ -123,7 +123,7 @@ class MetaflowProjectCiCdGitHubActionsWorkflow(Component):
     def _get_test_job(self) -> dict:
         """Get the test job configuration."""
         return {
-            "name": "Run Tests (pytest)",
+            "name": "Run tests",
             "if": "github.event_name != 'workflow_dispatch'",
             "runs-on": "ubuntu-latest",
             "defaults": {"run": {"working-directory": self.working_directory}},
@@ -168,7 +168,7 @@ class MetaflowProjectCiCdGitHubActionsWorkflow(Component):
                             uv run src/{flow_fname} \\
                             --config ./configs/prod.json \\
                             --environment=fast-bakery \\
-                            --package-suffixes='.csv' \\
+                            --package-suffixes='{PACKAGE_SUFFIXES}' \\
                             --production \\
                             argo-workflows create"""),
                 },
@@ -199,7 +199,7 @@ class MetaflowProjectCiCdGitHubActionsWorkflow(Component):
         ]
 
         # Add a deploy step for each flow
-        for i, flow in enumerate(self.metaflow_project.flows):
+        for flow in self.metaflow_project.flows:
             flow_name = flow.flow_path.name
             steps.append(
                 {
@@ -209,13 +209,13 @@ class MetaflowProjectCiCdGitHubActionsWorkflow(Component):
                           uv run src/{flow_name} \\
                             --config ./configs/prod.json \\
                             --environment=fast-bakery \\
-                            --package-suffixes='.csv' \\
+                            --package-suffixes='{PACKAGE_SUFFIXES}' \\
                             --production \\
                             argo-workflows create
                         else
                           uv run src/{flow_name} \\
                             --environment=fast-bakery \\
-                            --package-suffixes='.csv' \\
+                            --package-suffixes='{PACKAGE_SUFFIXES}' \\
                             run \\
                             --tag manual-trigger
                         fi"""),
