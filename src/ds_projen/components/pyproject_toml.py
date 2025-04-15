@@ -7,6 +7,8 @@ from typing import Any, Dict, Union
 from projen import Component, Project, TomlFile
 from tomlkit import dumps, parse
 
+from ds_projen.components.metaflow_project.consts import REQUIRES_PYTHON
+
 DEFAULT_DEPENDENCY_GROUPS = {"dev": ["pytest", "pre-commit", "ruff", "mypy"]}
 
 
@@ -30,7 +32,7 @@ class PyprojectToml(Component):
         package_name: str,
         description: str,
         file_path: Union[str, Path] = "pyproject.toml",
-        requires_python: str = ">=3.9",
+        requires_python: str = REQUIRES_PYTHON,
     ) -> None:
         super().__init__(project)
         self.package_name = package_name
