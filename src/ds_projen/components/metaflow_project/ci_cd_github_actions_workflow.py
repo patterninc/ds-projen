@@ -110,7 +110,7 @@ class MetaflowProjectCiCdGitHubActionsWorkflow(Component):
             "runs-on": "ubuntu-latest",
             "defaults": {"run": {"working-directory": "${{ env.WORKDIR }}"}},
             "steps": [
-                {"uses": "actions/checkout@v4"},
+                {"name": "Checkout repository", "uses": "actions/checkout@v4"},
                 {
                     "name": "Set up uv",
                     "uses": "astral-sh/setup-uv@v5",
@@ -119,7 +119,10 @@ class MetaflowProjectCiCdGitHubActionsWorkflow(Component):
                         "cache-dependency-glob": "${{ env.WORKDIR }}/uv.lock",
                     },
                 },
-                {"name": "Run pre-commit", "run": "SKIP=no-commit-to-branch uv run pre-commit run --files ${{ env.WORKDIR }}/**"},
+                {
+                    "name": "Run pre-commit",
+                    "run": "SKIP=no-commit-to-branch uv run pre-commit run --files ${{ env.WORKDIR }}/**",
+                },
             ],
         }
 
@@ -131,7 +134,7 @@ class MetaflowProjectCiCdGitHubActionsWorkflow(Component):
             "runs-on": "ubuntu-latest",
             "defaults": {"run": {"working-directory": "${{ env.WORKDIR }}"}},
             "steps": [
-                {"uses": "actions/checkout@v4"},
+                {"name": "Checkout repository", "uses": "actions/checkout@v4"},
                 {
                     "name": "Set up uv",
                     "uses": "astral-sh/setup-uv@v5",
@@ -154,7 +157,7 @@ class MetaflowProjectCiCdGitHubActionsWorkflow(Component):
             "defaults": {"run": {"working-directory": "${{ env.WORKDIR }}"}},
             "permissions": {"contents": "read", "id-token": "write"},
             "steps": [
-                {"uses": "actions/checkout@v4"},
+                {"name": "Checkout repository", "uses": "actions/checkout@v4"},
                 {"name": "Set up uv", "uses": "astral-sh/setup-uv@v5"},
                 {
                     "name": "Configure Outerbounds Auth",
@@ -169,7 +172,6 @@ class MetaflowProjectCiCdGitHubActionsWorkflow(Component):
                     "name": "Run Dev Flow",
                     "run": dedent(f"""\
                             uv run src/{flow_file_name} \\
-                                --config ./configs/dev.json \\
                                 --environment=fast-bakery \\
                                 --package-suffixes='{PACKAGE_SUFFIXES}' \\
                                 run \\
@@ -180,19 +182,18 @@ class MetaflowProjectCiCdGitHubActionsWorkflow(Component):
                     "name": "Deploy Prod Flow",
                     "run": dedent(f"""\
                             uv run src/{flow_file_name} \\
-                                --config ./configs/prod.json \\
                                 --environment=fast-bakery \\
                                 --package-suffixes='{PACKAGE_SUFFIXES}' \\
                                 --production \\
                                 argo-workflows create"""),
-                    },
+                },
             ],
         }
 
     def _get_manual_deploy_job(self) -> dict:
         """Get the manual-deploy job configuration that deploys all flows."""
         steps = [
-            {"uses": "actions/checkout@v4"},
+            {"name": "Checkout repository", "uses": "actions/checkout@v4"},
             {"name": "Set up uv", "uses": "astral-sh/setup-uv@v5"},
             {
                 "name": "Configure Outerbounds Auth",
@@ -221,7 +222,6 @@ class MetaflowProjectCiCdGitHubActionsWorkflow(Component):
                     "run": dedent(f"""\
                         if [[ "${{{{ github.event.inputs.environment }}}}" == "prod" ]]; then
                           uv run src/{flow_name} \\
-                            --config ./configs/prod.json \\
                             --environment=fast-bakery \\
                             --package-suffixes='{PACKAGE_SUFFIXES}' \\
                             --production \\
