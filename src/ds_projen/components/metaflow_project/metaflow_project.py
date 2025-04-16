@@ -50,18 +50,16 @@ class MetaflowProject(Component):
         """
         super().__init__(repo)
 
-        # validate inputs
-        assert__project_name__is_valid(name)
-        assert__domain__is_valid(domain)
-        if import_module_name:
-            assert__import_module_name__is_valid(import_module_name)
-
         # store inputs as attrs
-        self.outdir = Path("domains") / domain / (outdir or name)
-        self.domain = domain
+        self.name = assert__project_name__is_valid(name)
+        self.domain = assert__domain__is_valid(domain)
+        self.import_module_name = (
+            name.replace("-", "_")
+            if not import_module_name
+            else assert__import_module_name__is_valid(import_module_name)
+        )
         self.repo: "Repository" = repo
-        self.name = name
-        self.import_module_name = name.replace("-", "_") if not import_module_name else import_module_name
+        self.outdir = Path("domains") / domain / (outdir or name)
         self.src_dir = self.outdir / "src"
         self.package_dir = self.src_dir / self.import_module_name
 
@@ -151,13 +149,15 @@ def get_package_description(domain: TDataScienceDomain) -> str:
     return f"A metaflow flow. For questions, reach out to {leads}."
 
 
-def assert__domain__is_valid(domain: str) -> None:
+def assert__domain__is_valid(domain: str) -> str:
     """Validate the domain string and convert it to a Domain enum."""
     if domain not in DATA_SCIENCE_DOMAINS.keys():
         raise ValueError(f"Invalid domain: {domain}. Must be one of {', '.join(DATA_SCIENCE_DOMAINS.keys())}")
 
+    return domain
 
-def assert__project_name__is_valid(name: str):
+
+def assert__project_name__is_valid(name: str) -> str:
     """Validate and normalize project name.
 
     Rules:
@@ -172,6 +172,8 @@ def assert__project_name__is_valid(name: str):
     if not re.match(pattern, name):
         err_msg = "Project name must:\n- Only contain lowercase letters and hyphens\n- Start and end with a letter"
         raise ValueError(err_msg)
+
+    return name
 
 
 def assert__import_module_name__is_valid(name: str) -> str:
