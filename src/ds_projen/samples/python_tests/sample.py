@@ -12,7 +12,7 @@ THIS_DIR = Path(__file__).parent
 TESTING_FRAMEWORK_SAMPLE_FILE_TEMPLATES_DIR = (THIS_DIR / "./templates").resolve().absolute()
 
 
-class SampleProjectTestingFramework(Component):
+class SamplePythonTestingFramework(Component):
     """A set of sample folders and files that demonstrate a successful pytest framework."""
 
     def __init__(

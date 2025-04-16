@@ -1,5 +1,5 @@
 """Sample Python Testing Framework."""
 
-from .sample import SampleProjectTestingFramework
+from .sample import SamplePythonTestingFramework
 
-__all__ = ["SampleProjectTestingFramework"]
+__all__ = ["SamplePythonTestingFramework"]

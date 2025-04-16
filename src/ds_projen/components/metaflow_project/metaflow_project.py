@@ -15,7 +15,7 @@ from ds_projen.components.metaflow_project.consts import DATA_SCIENCE_DOMAINS, R
 from ds_projen.components.metaflow_project.metaflow_flow import MetaflowFlow
 from ds_projen.components.pyproject_toml import PyprojectToml
 from ds_projen.components.readme import Readme
-from ds_projen.samples.python_tests.sample import SampleProjectTestingFramework
+from ds_projen.samples.python_tests.sample import SamplePythonTestingFramework
 
 if TYPE_CHECKING:
     from ds_projen.projects.repository.repository import Repository
@@ -94,7 +94,7 @@ class MetaflowProject(Component):
             file_path=self.outdir / "README.md",
         )
 
-        self.tests_dir = SampleProjectTestingFramework(
+        self.tests_dir = SamplePythonTestingFramework(
             scope=self.repo,
             tests_outdir=self.outdir,
         )
