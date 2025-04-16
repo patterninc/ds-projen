@@ -48,7 +48,7 @@ class MetaflowFlow(Component):
 
             @pypi_base(
                 python="3.11",
-                packages={{"pandas": "2.2.3"}}
+                packages={{"requests": "2.32.3"}}
             )
             class {flow_name}(FlowSpec):
                 """A sample flow."""
