@@ -75,18 +75,18 @@ def assert_flow_filename_is_valid(filename: str):
 
     A valid flow name must be a valid Python identifier.
     """
-    if not filename.endswith(".py"):
+    if not filename.endswith("_flow.py"):
         raise ValueError(f"Invalid flow filename: {filename}. Flow filenames must end with '_flow.py'.")
 
     flow_name = filename[:-3]
     if not flow_name.isidentifier():
         raise ValueError(
-            f"Invalid flow name: {flow_name}. Flow names must be valid Python identifiers. E.g. lower_snake_case_flow.py"
+            f"Invalid flow name: {filename}. Flow names must be valid Python identifiers. E.g. lower_snake_case_flow.py"
         )
 
-    if not flow_name.endswith("_flow"):
+    if not flow_name.islower():
         raise ValueError(
-            f"Invalid flow name: {flow_name}. Flow names must end with '_flow.py'. E.g. lower_snake_case_flow.py"
+            f"Invalid flow name: {filename}. Flow names must be lower snake case. E.g. lower_snake_case_flow.py"
         )
 
 
@@ -97,9 +97,8 @@ def get_flow_class_name_from_filepath(flow_path: str | Path) -> str:
     """
     flow_path = Path(flow_path)  # ex: "path/to/some_backtest_flow.py"
     filename_no_ext = flow_path.stem  # ex: "some_backtest_flow"
-    file_name_with__flow_py__stripped = filename_no_ext.replace("flow", "").strip("_")  # ex: some_backtest
 
     # ex: SomeBacktest
-    flow_name = "".join(s.title() for s in file_name_with__flow_py__stripped.replace("-", "_").split("_"))
+    flow_name = "".join(s.title() for s in filename_no_ext.replace("-", "_").split("_"))
 
     return flow_name
