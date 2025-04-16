@@ -21,18 +21,27 @@ class SamplePythonTestingFramework(Component):
         tests_outdir: Path | str,
     ) -> None:
         super().__init__(scope)
+        print(f"{tests_outdir=}")
+        print(f"{self.project.outdir=}")
+        print(f"{TESTING_FRAMEWORK_SAMPLE_FILE_TEMPLATES_DIR=}")
+
         self.fastapi_sample_files = self.__make_sample_dir(tests_outdir=tests_outdir)
 
     def __make_sample_dir(self, tests_outdir: Path | str) -> list[SampleFile]:
         template_fpaths = self.__get_sample_file_template_fpaths()
-        return [
+
+        sample_files = []
+        for path in template_fpaths:
+            fpath = str(Path(tests_outdir) / path.relative_to(TESTING_FRAMEWORK_SAMPLE_FILE_TEMPLATES_DIR))
+            print(f"Sample file path: {fpath=}")
+            print(f"{path.relative_to(TESTING_FRAMEWORK_SAMPLE_FILE_TEMPLATES_DIR)=}")
             SampleFile(
                 project=self.project,
-                file_path=str(tests_outdir / path.relative_to(TESTING_FRAMEWORK_SAMPLE_FILE_TEMPLATES_DIR)),
+                file_path=fpath,
                 contents=path.read_text(),
             )
-            for path in template_fpaths
-        ]
+
+        return sample_files
 
     def __get_sample_file_template_fpaths(self) -> list[Path]:
         template_fpaths = list(TESTING_FRAMEWORK_SAMPLE_FILE_TEMPLATES_DIR.rglob("*.py"))

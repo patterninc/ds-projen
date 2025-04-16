@@ -59,7 +59,7 @@ class MetaflowProject(Component):
             else assert__import_module_name__is_valid(import_module_name)
         )
         self.repo: "Repository" = repo
-        self.outdir = Path("domains") / domain / (outdir or name)
+        self.outdir = Path(repo.outdir) / Path("domains") / domain / (outdir or name)
         self.src_dir = self.outdir / "src"
         self.package_dir = self.src_dir / self.import_module_name
 
@@ -79,7 +79,7 @@ class MetaflowProject(Component):
 
         self.pyproject_toml = PyprojectToml(
             project=self.repo,
-            file_path=self.outdir / "pyproject.toml",
+            file_path=Path("domains") / domain / (outdir or name) / "pyproject.toml",
             description=get_package_description(domain=domain),
             package_name=self.name,
             requires_python=requires_python,
@@ -94,7 +94,7 @@ class MetaflowProject(Component):
 
         self.tests_dir = SamplePythonTestingFramework(
             scope=self.repo,
-            tests_outdir=self.outdir,
+            tests_outdir=Path("domains") / domain / (outdir or name),
         )
 
     def add_flow(  # noqa: PLR0913 -- Too many arguments in function definition

@@ -1,19 +1,19 @@
 """Test that can synth a projen repository."""
 
+import os
 import subprocess
 import tempfile
 from pathlib import Path
-from textwrap import dedent
-from typing import Generator
 
 import pytest
 
+from ds_projen import MetaflowProject, Repository
 from tests.consts import ARTIFACTS_DIR
 
-REPO_NAME = "dummy-repo"
-DOMAIN = "reference"
-METAFLOW_PROJECT_NAME = "dummy-project"
-METAFLOW_PROJECT_OUTDIR = f"domains/{DOMAIN}/{METAFLOW_PROJECT_NAME}"
+# REPO_NAME = "dummy-repo"
+# DOMAIN = "reference"
+# METAFLOW_PROJECT_NAME = "dummy-project"
+# METAFLOW_PROJECT_OUTDIR = f"domains/{DOMAIN}/{METAFLOW_PROJECT_NAME}"
 
 
 """
@@ -48,52 +48,54 @@ Test now successfully creates and runs metaflow project in correct location.
 """
 
 
+DUMMY_REPO_NAME = "dummy-repo"
+DUMMY_DOMAIN = "reference"
+DUMMY_METAFLOW_PROJECT_NAME = "dummy-project"
+
+
 @pytest.fixture(scope="function")
-def repository_fpath() -> Generator[Path, None, None]:
+def repository_fpath() -> Path:
     """Return the path of a temporary repository for testing purposes."""
+    ARTIFACTS_DIR.mkdir(exist_ok=True, parents=True)
+
     with tempfile.TemporaryDirectory(dir=ARTIFACTS_DIR) as tmp_dir:
-        tmp_dir = Path(tmp_dir)  # noqa: PLW2901 `with` statement variable `tmp_dir` overwritten by assignment target
+        tmp_dir = Path(tmp_dir)
 
-        # Create a .projenrc.py file in the temporary directory
-        projenrc_content = dedent(f'''\
-            from ds_projen import MetaflowProject, Repository
-
-            repo = Repository(
-                name="{REPO_NAME}",
-            )
-
-            project = MetaflowProject(
-                repo=repo,
-                name="{METAFLOW_PROJECT_NAME}",
-                domain="{DOMAIN}",
-            )
-
-            project.add_flow("sample_flow.py")
-
-            repo.synth()
-            ''')
-
-        projenrc_path = tmp_dir / ".projenrc.py"
-        projenrc_path.write_text(projenrc_content)
-
-        # Run projenrc.py to generate the project
-        subprocess.run(
-            ["uv", "run", ".projenrc.py"],
-            cwd=str(tmp_dir),
-            check=True,
+        repo = Repository(
+            name=DUMMY_REPO_NAME,
+            outdir=str(tmp_dir / DUMMY_REPO_NAME),
         )
 
-        yield tmp_dir
+        project = MetaflowProject(
+            repo=repo,
+            name=DUMMY_METAFLOW_PROJECT_NAME,
+            domain=DUMMY_DOMAIN,
+        )
+
+        project.add_flow("sample_flow.py")
+
+        repo.synth()
+        yield tmp_dir / DUMMY_REPO_NAME
 
 
 def test__sample_flow_finishes_successfully(repository_fpath: Path):
     """Test that the sample flow finishes successfully."""
-    flow_dir = repository_fpath / f"{METAFLOW_PROJECT_OUTDIR}/src"
+    flow_dir = repository_fpath / "domains" / DUMMY_DOMAIN / DUMMY_METAFLOW_PROJECT_NAME / "src"
     flow_fpath = "sample_flow.py"
 
-    # use subprocess to run the generated sample_flow.py and check that it finishes successfully
+    # create a .metaflowconfig/config_local.json file
+    (repository_fpath / ".metaflowconfig").mkdir(exist_ok=True)
+    (repository_fpath / ".metaflowconfig" / "config_local.json").write_text("{}")
+    
+    # use subprocess to run `uv run sample_flow.py`
+    # and check that it finishes successfully
     subprocess.run(
         ["uv", "run", flow_fpath, "--environment=pypi", "--no-pylint", "run", "--tag=triggered-by-pytest"],
-        cwd=str(flow_dir),
+        cwd=flow_dir,
         check=True,
+        env=os.environ.copy()
+        | {
+            "METAFLOW_HOME": str(repository_fpath / ".metaflowconfig"),
+            "METAFLOW_PROFILE": "local",
+        },
     )
