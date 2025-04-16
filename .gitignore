@@ -1,18 +1,18 @@
 test-folder/
-example-project
-*test-reports
 
-**/.DS_Store
+
+
 
 # Python-generated files
-__pycache__/
+# Virtual environments
+**/.DS_Store
+*.egg-info
 *.py[oc]
+*cache*
+*env
+*test-reports
+__pycache__/
 build/
 dist/
+example-project
 wheels/
-*.egg-info
-
-# Virtual environments
-*env
-*cache*
-
