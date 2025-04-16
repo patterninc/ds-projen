@@ -1,5 +1,4 @@
-"""
-Unit tests for ds-projen.
+"""Unit tests for ds-projen.
 
 This folder ideally has a parallel folder structure with the src/ds_projen folder.
 

@@ -1,6 +1,5 @@
 """Test that can synth a projen repository."""
 
-import shutil
 import subprocess
 import tempfile
 from pathlib import Path
@@ -9,9 +8,8 @@ from typing import Generator
 import pytest
 
 from ds_projen import MetaflowProject, Repository
-from tests.consts import TESTS_DIR
+from tests.consts import ARTIFACTS_DIR
 
-ARTIFACTS_DIR = TESTS_DIR / "artifacts"
 DUMMY_REPO_NAME = "dummy-repo"
 DUMMY_DOMAIN = "reference"
 DUMMY_METAFLOW_PROJECT_NAME = "dummy-project"
@@ -20,8 +18,6 @@ DUMMY_METAFLOW_PROJECT_NAME = "dummy-project"
 @pytest.fixture(scope="function")
 def repository_fpath() -> Generator[Path, None, None]:
     """Return the path of a temporary repository for testing purposes."""
-    ARTIFACTS_DIR.mkdir(exist_ok=True, parents=True)
-
     with tempfile.TemporaryDirectory(dir=ARTIFACTS_DIR) as tmp_dir:
         tmp_dir = Path(tmp_dir)
 
@@ -41,9 +37,6 @@ def repository_fpath() -> Generator[Path, None, None]:
         repo.synth()
 
         yield tmp_dir / DUMMY_REPO_NAME
-
-        # cleanup -- delete the artifacts directory after test
-        shutil.rmtree(ARTIFACTS_DIR, ignore_errors=True)
 
 
 def test__sample_flow_finishes_successfully(repository_fpath: Path):

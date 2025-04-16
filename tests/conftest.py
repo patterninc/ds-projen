@@ -14,4 +14,6 @@ TESTS_DIR_PARENT = (THIS_DIR / "..").resolve()
 sys.path.insert(0, str(TESTS_DIR_PARENT))
 
 # module import paths to python files containing fixtures
-# pytest_plugins = []
+pytest_plugins = [
+    "tests.fixtures.artifacts_dir",
+]

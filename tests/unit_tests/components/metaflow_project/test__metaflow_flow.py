@@ -2,25 +2,22 @@
 
 import tempfile
 from pathlib import Path
+from typing import Generator
 
 import pytest
 
 from ds_projen import MetaflowProject, Repository
 from ds_projen.components.metaflow_project.metaflow_flow import get_flow_class_name_from_filepath
+from tests.consts import ARTIFACTS_DIR
 
-THIS_DIR = Path(__file__).parent
-TESTS_DIR = (THIS_DIR / "../").resolve()
-ARTIFACTS_DIR = TESTS_DIR / "artifacts"
 DUMMY_REPO_NAME = "dummy-repo"
 DUMMY_DOMAIN = "reference"
 DUMMY_METAFLOW_PROJECT_NAME = "dummy-project"
 
 
 @pytest.fixture(scope="function")
-def repository_with_metaflow_project() -> tuple[Repository, MetaflowProject]:
+def repository_with_metaflow_project() -> Generator[tuple[Repository, MetaflowProject], None, None]:
     """Return the path of a temporary repository for testing purposes."""
-    ARTIFACTS_DIR.mkdir(exist_ok=True, parents=True)
-
     with tempfile.TemporaryDirectory(dir=ARTIFACTS_DIR) as tmp_dir:
         tmp_dir = Path(tmp_dir)
 
