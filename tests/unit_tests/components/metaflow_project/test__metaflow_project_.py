@@ -46,8 +46,15 @@ def get_workflow_contents(repository_fpath: Path) -> dict:
     workflow_file = repository_fpath / ".github" / "workflows" / workflow_name
     assert workflow_file.exists(), f"Expected workflow file {workflow_file} does not exist"
 
-    workflow_content: dict = yaml.safe_load(workflow_file.read_text(encoding="utf-8"))
+    # Use BaseLoader instead of safe_load to prevent YAML from interpreting unquoted keys
+    # like "on" as booleans(True)
 
+    # YAML indicates boolean values with the keywords True, On and Yes for true.
+    # False is indicated with False, Off, or No.
+    workflow_content: dict = yaml.load(
+        workflow_file.read_text(encoding="utf-8"),
+        Loader=yaml.BaseLoader,
+    )
     return workflow_content
 
 
@@ -108,7 +115,6 @@ def test__expected_jobs_are_generated_into_the_github_actions_workflow(repositor
 def test__metaflow_ci_cd_workflow_triggers(repository_fpath: Path):
     """Test that the Metaflow CI/CD workflow has correct trigger paths."""
     workflow_content = get_workflow_contents(repository_fpath)
-
     workflow_triggers: dict = workflow_content["on"]
 
     expected_paths = {
