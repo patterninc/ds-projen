@@ -73,7 +73,8 @@ def _sort_gitignore_in_place(project: Project):
     which would cause the build to fail. Sorting them each time
     makes the order the same on every synth.
     """
-    repo_root_dir: Path = get_project_dir(project=project)
+    # repo_root_dir: Path = get_project_dir(project=project)
+    repo_root_dir = Path(project.outdir)
     gitignore_fpath = repo_root_dir / ".gitignore"
 
     # read the sorts lines
