@@ -2,6 +2,6 @@
 
 from pathlib import Path
 
-TESTS_DIR = Path(__file__).parent  # tests/ directory
-PROJECT_DIR = (TESTS_DIR / "../").resolve()  # ds-projen/ directory
+TESTS_DIR = Path(__file__).parent  # tests/
+PROJECT_DIR = (TESTS_DIR / "../").resolve()  # ds-projen/
 ARTIFACTS_DIR = TESTS_DIR / "artifacts"
