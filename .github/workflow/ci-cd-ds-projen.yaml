@@ -1,4 +1,4 @@
-name: Deploy DS Projen
+name: Publish DS Projen
 
 on:
   workflow_dispatch:
