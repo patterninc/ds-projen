@@ -257,10 +257,10 @@ def get_poe_tasks() -> dict:
                             -o -name "*.egg-info" \\
                             -o -name "*htmlcov" \\
                             -o -name "*.metaflow" \\
+                            -o -name "*.metaflow.s3" \\
                             -o -name "*.mypy_cache" \\
                             -o -name "*.pytest_cache" \\
                             -o -name "*.ruff_cache" \\
-                            -o -name "*.DS_Store" \\
                             -o -name "*__pycache__" \\
                             \\) \\
                             -not -path "*env/*" \\
@@ -269,6 +269,8 @@ def get_poe_tasks() -> dict:
                         find . \\
                             -type f \\
                             -name "*.pyc" \\
+                            -o -name "*.DS_Store" \\
+                            -o -name "*.coverage" \\
                             -not -path "*env/*" \\
                             -exec rm {} +
                         """),
