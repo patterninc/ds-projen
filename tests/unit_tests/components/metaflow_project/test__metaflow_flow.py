@@ -8,11 +8,7 @@ import pytest
 
 from ds_projen import MetaflowProject, Repository
 from ds_projen.components.metaflow_project.metaflow_flow import get_flow_class_name_from_filepath
-from tests.consts import ARTIFACTS_DIR
-
-DUMMY_REPO_NAME = "dummy-repo"
-DUMMY_DOMAIN = "reference"
-DUMMY_METAFLOW_PROJECT_NAME = "dummy-project"
+from tests.consts import ARTIFACTS_DIR, TEST_DOMAIN, TEST_METAFLOW_PROJECT_NAME, TEST_REPO_NAME
 
 
 @pytest.fixture(scope="function")
@@ -22,14 +18,14 @@ def repository_with_metaflow_project() -> Generator[tuple[Repository, MetaflowPr
         tmp_dir = Path(tmp_dir)
 
         repo = Repository(
-            name=DUMMY_REPO_NAME,
-            outdir=str(tmp_dir / DUMMY_REPO_NAME),
+            name=TEST_REPO_NAME,
+            outdir=str(tmp_dir / TEST_REPO_NAME),
         )
 
         project = MetaflowProject(
             repo=repo,
-            name=DUMMY_METAFLOW_PROJECT_NAME,
-            domain=DUMMY_DOMAIN,
+            name=TEST_METAFLOW_PROJECT_NAME,
+            domain=TEST_DOMAIN,
         )
 
         yield repo, project
