@@ -16,6 +16,17 @@ dependencies = [
     "tomlkit>=0.13.2",
 ]
 
+[dependency-groups]
+dev = [
+    "mypy>=1.15.0",
+    "rich>=14.0.0",
+    "ruff>=0.9.6",
+    "pytest>=8.3.5",
+    "pytest-cov",
+    "pyyaml>=6.0.2",
+    "poethepoet>=0.33.1",
+]
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
@@ -58,17 +69,6 @@ ignore = [
 [tool.ruff.lint.mccabe]
 max-complexity = 10
 
-[dependency-groups]
-dev = [
-    "mypy>=1.15.0",
-    "rich>=14.0.0",
-    "ruff>=0.9.6",
-    "pytest>=8.3.5",
-    "pytest-cov",
-    "pyyaml>=6.0.2",
-]
-
-
 [tool.pytest.ini_options]
 markers = ["slow: marks tests as slow (deselect with '-m \"not slow\"')"]
 pythonpath = ["."]
@@ -79,11 +79,6 @@ addopts = [
     "--cov-report=html",
     "--cov-report=term",
 ]
-# IGNORE tests/artifacts dir while running tests to avoid this error:
-# ERROR - Defining 'pytest_plugins' in a non-top-level conftest is no longer supported:
-# https://docs.pytest.org/en/stable/deprecations.html#pytest-plugins-in-non-top-level-conftest-files
-# https://docs.pytest.org/en/7.1.x/reference/reference.html#confval-norecursedirs
-norecursedirs = ["tests/artifacts"]
 
 [tool.coverage.paths]
 source = ["src/"]
@@ -109,7 +104,9 @@ omit = ["tests/artifacts/*"]
 show_missing = true
 
 [tool.coverage.run]
-branch = true
+branch = false
+parallel = true
+data_file = ".coverage"
 
 [tool.coverage.xml]
 output = "test-reports/coverage.xml"
