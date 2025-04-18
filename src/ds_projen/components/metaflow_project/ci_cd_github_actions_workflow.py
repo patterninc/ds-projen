@@ -81,7 +81,7 @@ class MetaflowProjectCiCdGitHubActionsWorkflow(Component):
                 },
             },
             "env": {
-                "WORKDIR": self.working_directory,
+                "WORKDIR": str(self.metaflow_project.project_relative_dir),
             },
             "jobs": {
                 "lint": self._get_lint_job(),
