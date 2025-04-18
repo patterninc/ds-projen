@@ -59,6 +59,7 @@ class MetaflowProject(Component):
             else assert__import_module_name__is_valid(import_module_name)
         )
         self.repo: "Repository" = repo
+        # self.outdir = Path(repo.outdir) / Path("domains") / domain / (outdir or name)
         self.outdir = Path(repo.outdir) / Path("domains") / domain / (outdir or name)
         self.src_dir = self.outdir / "src"
         self.package_dir = self.src_dir / self.import_module_name

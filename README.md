@@ -2,6 +2,26 @@
 
 TODOs
 
+- [ ] Have `MetaflowProject(poc: bool)` param that
+  - [ ] adds a poc-prefix to project names
+  - [ ] disables linting (except for formatting)
+  - [ ] if it's false, raise an error if they don't provide a url to their Pipeline worksheet
+  - [ ] raise an error `if docs_url is None and poc == False`
+    - [ ] Prompt people to visit the clickup doc to fill out the Ops worksheet
+          Note that PR's are NOT to be approved for flows with `poc=False` if 
+          the Ops worksheet has not been approved. In other words, to deploy a pipeline to prod,
+          you must
+
+          1. fill out the ops worksheet
+          2. register its url in projen
+          3. get ML Platform to read and approve it
+
+          - [ ] Include this in a PR template so people know to do it.
+    - [ ] Render a markdown table into README.md that lists:
+      - [ ] projects
+      - [ ] whether it's a poc
+      - [ ] domain
+      - [ ] link to the ops worksheet url
 - [ ] Actually test the GitHub actions workflow (see the `reference-migration` branch of `data-science-projects`).
   - [ ] Manually
   - [ ] Via an automation; we'll need to create a repo and set of outerbounds users
@@ -17,6 +37,7 @@ TODOs
     - [ ] Option: put projen-managed files in a `projen-files.txt` and cat them
           into the `pre-commit run ...` command. Not sure how this would work
           for `git commit ...`. I wish `.pre-commit-ignore` files were a thing.
+- [ ] make synth fail if any flows are detected that are not managed by projen
 - [ ] Get test coverage up to 90%.
   - [ ] Add unit tests for
     - [ ] Individual components
@@ -24,6 +45,21 @@ TODOs
     - [ ] A task runner, e.g. run lint and validate that it catches/fixes errors
     - [ ] Run generated tests
 
+Task runners
+
+| Feature                         | ./run (bash) | Justfile | Makefile           | Taskfile       | Poethepoet               |
+| ------------------------------- | ------------ | -------- | ------------------ | -------------- | ------------------------ |
+| Near-zero learning curve        | ✅            | ✅        | ❌                  | ❌              | ✅                        |
+| Tab autocomplete commands       | ❌            | ✅        | ✅                  | ✅              | ✅                        |
+| cwd does not matter             | ❌            | ✅        | ✅                  |                | ✅                        |
+| True bash (functions, env vars) | ✅            | ✅        | ❌❌❌                | ❌ (`mvdan/sh`) | ✅                        |
+| Bash syntax highlighting        | ✅            | ❌        | ❌                  | ❌              | ❌                        |
+| No extra install                | ✅            | ❌        | ✅                  | ❌              | ✅ (via `uv run poe ...`) |
+| Can `apt-get install` if needed | n/a          | ✅        | already everywhere |                | n/a                      |
+| projen-friendly                 | ❌            | ❌        | ❌                  | ✅ uses yaml    | ✅ uses `pyproject.toml`  |
+| Cmds accept arguments           | ✅            | ✅        | ❌                  |                |                          |
+| ^^^ *named* arguments           | ✅            |          | ❌                  |                |                          |
+| Tab autocomplete arguments      | ❌            |          | ❌                  |                |                          |
 
 ```python
 # Sample .projenrc.py file

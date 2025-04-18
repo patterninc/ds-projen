@@ -1,3 +1,6 @@
+[tool.poe.tasks]
+test = "./run tests"
+
 [project]
 name = "ds-projen"
 version = "0.1.0"
@@ -51,6 +54,7 @@ dev = [
     "ruff>=0.9.6",
     "pytest>=8.3.5",
     "pytest-cov",
+    "pyyaml>=6.0.2",
 ]
 
 [tool.coverage.run]
