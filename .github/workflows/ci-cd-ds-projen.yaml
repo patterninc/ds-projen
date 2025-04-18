@@ -55,6 +55,8 @@ jobs:
           path: ./dist/
 
   execute-tests:
+    needs:
+      - build-wheel
     name: Run Tests
     runs-on: ubuntu-latest
     steps:
