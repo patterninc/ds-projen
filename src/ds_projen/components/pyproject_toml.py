@@ -25,7 +25,7 @@ class PyprojectToml(Component):
     freely modified.
     """
 
-    def __init__(
+    def __init__(  # noqa: PLR0913 Too many arguments in function definition
         self,
         project: "Project",
         package_name: str,
@@ -240,7 +240,7 @@ def get_poe_tasks() -> dict:
                     "shell": dedent("""\
                         echo "Serving coverage report on http://localhost:3333"
                         echo "Press Ctrl+C to stop the server"
-                        
+
                         python -m http.server 3333 --directory ./test-reports/htmlcov
                         """),
                 },

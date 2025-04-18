@@ -42,6 +42,18 @@ extend-select = [
     "N",
 ]
 
+ignore = [
+    "D107",     # Missing docstring in `__init__`
+    "E501",     # Line too long
+    "D100",     # Missing docstring in public module
+    "D104",     # Missing docstring in public package
+    "D103",     # Missing docstring in public function
+    # Magic value used in comparison, consider replacing `4` with a constant variable -- Is problem for tests
+    "PLR2004",
+    # `with` statement variable `tmp_dir` overwritten by assignment target, eg: tests/unit_tests/components/metaflow_project/test__metaflow_project_.py:17:9
+    "PLW2901",
+]
+
 # https://docs.astral.sh/ruff/rules/#mccabe-c90
 [tool.ruff.lint.mccabe]
 max-complexity = 10
