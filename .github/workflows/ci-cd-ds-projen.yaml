@@ -18,7 +18,7 @@ jobs:
 
       - name: Set up uv
         uses: astral-sh/setup-uv@v5
-      
+
       - name: Check version
         # https://github.com/gnprice/toml-cli
         run: |
@@ -93,7 +93,7 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-      
+
       - name: Set up uv
         uses: astral-sh/setup-uv@v5
 
