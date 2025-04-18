@@ -57,11 +57,17 @@ class MetaflowProjectCiCdGitHubActionsWorkflow(Component):
             "on": {
                 "push": {
                     "branches": ["main"],
-                    "paths": [f"{self.working_directory}/**", f".github/workflows/{workflow_name}"],
+                    "paths": [
+                        f"{self.metaflow_project.project_relative_dir}/**",
+                        f".github/workflows/{workflow_name}",
+                    ],
                 },
                 "pull_request": {
                     "types": ["opened", "synchronize"],
-                    "paths": [f"{self.working_directory}/**", f".github/workflows/{workflow_name}"],
+                    "paths": [
+                        f"{self.metaflow_project.project_relative_dir}/**",
+                        f".github/workflows/{workflow_name}",
+                    ],
                 },
                 "workflow_dispatch": {
                     "inputs": {

@@ -59,8 +59,9 @@ class MetaflowProject(Component):
             else assert__import_module_name__is_valid(import_module_name)
         )
         self.repo: "Repository" = repo
-        # self.outdir = Path(repo.outdir) / Path("domains") / domain / (outdir or name)
-        self.outdir = Path(repo.outdir) / Path("domains") / domain / (outdir or name)
+
+        self.project_relative_dir = Path("domains") / domain / (outdir or name)
+        self.outdir = Path(repo.outdir) / self.project_relative_dir
         self.src_dir = self.outdir / "src"
         self.package_dir = self.src_dir / self.import_module_name
 
@@ -80,7 +81,7 @@ class MetaflowProject(Component):
 
         self.pyproject_toml = PyprojectToml(
             project=self.repo,
-            file_path=Path("domains") / domain / (outdir or name) / "pyproject.toml",
+            file_path=self.project_relative_dir / "pyproject.toml",
             description=get_package_description(domain=domain),
             package_name=self.name,
             requires_python=requires_python,
@@ -95,7 +96,7 @@ class MetaflowProject(Component):
 
         self.tests_dir = SamplePythonTestingFramework(
             scope=self.repo,
-            tests_outdir=Path("domains") / domain / (outdir or name),
+            tests_outdir=self.project_relative_dir,
         )
 
         # TODO: make it so this doesn't eternally regenerate after deleting
