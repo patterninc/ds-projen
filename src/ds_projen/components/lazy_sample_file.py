@@ -6,7 +6,9 @@ from typing import Callable, Optional, Union
 from projen import Component, Project
 
 TGetContentsFn = Callable[[], str]
-"""A function that will be called during synthesis of a component to get the contents that will be written to the file."""
+"""
+A function that will be called during synthesis of a component to get the contents that will be written to the file.
+"""
 
 TGetFilePathFn = Callable[[], Union[str, Path]]
 

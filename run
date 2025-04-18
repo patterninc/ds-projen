@@ -5,6 +5,12 @@ set -e
 THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 MINIMUM_TEST_COVERAGE_PERCENT=90
 
+
+# run linting, formatting, and other static code quality tools
+function lint {
+    uvx --from pre-commit pre-commit run --all-files
+}
+
 # execute tests that are not marked as `slow`
 function test:quick {
     run-tests -m "not slow" ${@:-"$THIS_DIR/tests/"}
@@ -12,6 +18,8 @@ function test:quick {
 
 # execute tests against the installed package; assumes the wheel is already installed
 function test:ci {
+    set -x
+
     INSTALLED_PKG_DIR="$(uv run -- python -c 'import ds_projen; print(ds_projen.__path__[0])')"
     # in CI, we must calculate the coverage for the installed package, not the src/ folder
     COVERAGE_DIR="$INSTALLED_PKG_DIR" tests
@@ -20,14 +28,18 @@ function test:ci {
 # (example) ./run.sh test tests/test_states_info.py::test__slow_add
 function tests {
     PYTEST_EXIT_STATUS=0
-    rm -rf "$THIS_DIR/test-reports" || true
+    clean || true
+    # rm -rf "$THIS_DIR/test-reports" .coverage* || true
+
     uv run pytest -xvss ${@:-"$THIS_DIR/tests/"} \
+        --ignore="$THIS_DIR/tests/artifacts" \
         --cov "${COVERAGE_DIR:-$THIS_DIR/src}" \
         --cov-report html \
         --cov-report term \
         --cov-report xml \
         --junit-xml "$THIS_DIR/test-reports/report.xml" \
         --cov-fail-under "$MINIMUM_TEST_COVERAGE_PERCENT" || ((PYTEST_EXIT_STATUS+=$?))
+
     mv coverage.xml "$THIS_DIR/test-reports/" || true
     mv htmlcov "$THIS_DIR/test-reports/" || true
     mv .coverage "$THIS_DIR/test-reports/" || true
@@ -36,6 +48,11 @@ function tests {
 
 # serve the html test coverage report on localhost:8000
 function serve-coverage-report {
+    if [ ! -d "$THIS_DIR/test-reports/htmlcov" ]; then
+        echo "No coverage report found!"
+        return 1
+    fi
+
     python -m http.server --directory "$THIS_DIR/test-reports/htmlcov/" 8000
 }
 
@@ -49,6 +66,12 @@ function clean {
         -o -name "*.dist-info" \
         -o -name "*.egg-info" \
         -o -name "*htmlcov" \
+        -o -name "*.metaflow" \
+        -o -name "*.metaflow.s3" \
+        -o -name "*.mypy_cache" \
+        -o -name "*.pytest_cache" \
+        -o -name "*.ruff_cache" \
+        -o -name "*__pycache__" \
       \) \
       -not -path "*env/*" \
       -exec rm -r {} + || true
@@ -56,6 +79,8 @@ function clean {
     find . \
       -type f \
       -name "*.pyc" \
+      -o -name "*.DS_Store" \
+      -o -name "*.coverage*" \
       -not -path "*env/*" \
       -exec rm {} +
 }
