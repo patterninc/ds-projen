@@ -2,14 +2,13 @@
 
 from copy import deepcopy
 from pathlib import Path
+from textwrap import dedent
 from typing import Any, Dict, Union
 
 from projen import Component, Project, TomlFile
 from tomlkit import dumps, parse
 
 from ds_projen.components.metaflow_project.consts import REQUIRES_PYTHON
-
-DEFAULT_DEPENDENCY_GROUPS = {"dev": ["pytest", "pre-commit", "ruff", "mypy"]}
 
 
 class PyprojectToml(Component):
@@ -55,14 +54,15 @@ class PyprojectToml(Component):
         # on first synth, add these starter dependencies
         if not dependencies:
             dependencies = deepcopy(default_dependencies)
-            
-        contents: dict = get_pyproject_toml_values(
-            package_name=self.package_name,
-            description=self.description,
-            dependencies=dependencies,
-            dependency_groups=dependency_groups,
-            requires_python=requires_python,
-        )
+
+        def _get_contents() -> dict:
+            return get_pyproject_toml_values(
+                package_name=self.package_name,
+                description=self.description,
+                dependencies=dependencies,
+                dependency_groups=dependency_groups,
+                requires_python=requires_python,
+            )
 
         # Refer to these docs to see why we set this up the way we do:
         # https://github.com/projen/projen/blob/main/src/javascript/node-package.ts#L666-L671
@@ -132,7 +132,15 @@ def get_pyproject_toml_values(
             "dependencies": deepcopy(dependencies),
         },
         "dependency-groups": deepcopy(dependency_groups),
-        "tool": {"pytest": {"ini_options": {"pythonpath": ["."]}}},
+        "tool": {
+            **deepcopy(PYTEST_TOOL_SETTINGS),
+            **deepcopy(PYTEST_COV_TOOL_SETTINGS),
+            **get_poe_tasks(),
+        },
+        "build-system": {
+            "build-backend": "hatchling.build",
+            "requires": ["hatchling"],
+        },
     }
 
 
@@ -144,3 +152,128 @@ def read_toml(toml_fpath: Path) -> Dict[str, Any]:
 def to_toml(d: Dict[str, Any]) -> str:
     """Return a TOML string representation of the dict."""
     return dumps(d)
+
+
+DEFAULT_DEPENDENCY_GROUPS = {
+    "dev": ["pytest", "pytest-cov", "pre-commit", "ruff", "mypy"],
+}
+
+PYTEST_TOOL_SETTINGS = {
+    "pytest": {
+        "ini_options": {
+            "markers": [
+                "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+            ],
+            "pythonpath": ["."],
+            "addopts": [
+                # unit test report which can be consumed by tools like codecov
+                "--junitxml=test-reports/report.xml",
+                # coverage (from pytest-cov); the pytest-cov settings send these reports into test-reports/
+                "--cov=src",
+                "--cov-report=xml",
+                "--cov-report=html",
+                "--cov-report=term",
+            ],
+        },
+    },
+}
+
+PYTEST_COV_TOOL_SETTINGS = {
+    "coverage": {
+        # Specifies the source paths for coverage analysis
+        "paths": {"source": ["src/"]},
+        "report": {
+            # Patterns to exclude from coverage reporting
+            # These lines generally can never be executed, e.g.
+            # 'if TYPE_CHECKING:', so they should not be counted
+            # against the total coverage score
+            "exclude_also": [
+                "pragma: no cover",
+                "if False",
+                "def __repr__",
+                "if self.debug",
+                "raise AssertionError",
+                "raise NotImplementedError",
+                "raise MemoryError",
+                "except DistributionNotFound",
+                "except ImportError",
+                "@abc.abstractmethod",
+                "if 0:",
+                "if __name__ == .__main__.:",
+                "if typing.TYPE_CHECKING:",
+                "if TYPE_CHECKING:",
+            ],
+            # Files or directories to omit from coverage analysis
+            "omit": ["tests/artifacts/*"],
+            # Whether to show lines missing coverage in the report
+            "show_missing": True,
+        },
+        # Enable branch coverage analysis
+        "run": {"branch": True},
+        # File path for the XML coverage report; tools like
+        # codecov and coveralls can typically integrate with GitHub actions
+        # and use this file to generate an HTML view of coverage that
+        # people can look at during PRs
+        "xml": {"output": "test-reports/coverage.xml"},
+        # Directory where the HTML coverage report will be saved
+        "html": {"directory": "test-reports/htmlcov"},
+        # File path for the JSON coverage report
+        "json": {"output": "test-reports/coverage.json"},
+    }
+}
+
+
+def get_poe_tasks() -> dict:
+    """Return tasks that can be executed with `poe <task_name>`."""
+    return {
+        "poe": {
+            "tasks": {
+                "lint": {
+                    "cmd": "pre-commit run --all-files",
+                    "help": "Run linting, formatting, projen synth, and other static code quality tools",
+                },
+                "test": {
+                    "cmd": "pytest",
+                    "help": "Run all tests",
+                },
+                "serve-coverage-report": {
+                    "help": "Serve the coverage report on http://localhost:3333",
+                    "shell": dedent("""\
+                        echo "Serving coverage report on http://localhost:3333"
+                        echo "Press Ctrl+C to stop the server"
+
+                        python -m http.server 3333 --directory ./test-reports/htmlcov
+                        """),
+                },
+                "clean": {
+                    "help": "Remove all files generated by tests, builds, or operating this codebase",
+                    "shell": dedent("""\
+                        rm -rf dist build coverage.xml test-reports sample/
+
+                        find . \\
+                            -type d \\
+                            \\( \\
+                            -name "*cache*" \\
+                            -o -name "*.dist-info" \\
+                            -o -name "*.egg-info" \\
+                            -o -name "*htmlcov" \\
+                            -o -name "*.metaflow" \\
+                            -o -name "*.mypy_cache" \\
+                            -o -name "*.pytest_cache" \\
+                            -o -name "*.ruff_cache" \\
+                            -o -name "*.DS_Store" \\
+                            -o -name "*__pycache__" \\
+                            \\) \\
+                            -not -path "*env/*" \\
+                            -exec rm -r {} + || true
+
+                        find . \\
+                            -type f \\
+                            -name "*.pyc" \\
+                            -not -path "*env/*" \\
+                            -exec rm {} +
+                        """),
+                },
+            }
+        }
+    }

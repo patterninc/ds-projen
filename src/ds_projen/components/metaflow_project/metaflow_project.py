@@ -37,15 +37,15 @@ class MetaflowProject(Component):
         """Initialize a new Python package project.
 
         :param name: This is the name of your project. Default: $BASEDIR
-        
+
         :param import_module_name: Name of the python package as used in imports and filenames. \
             Must only consist of alphabetic characters and underscores. \
             Defaults to project name with hyphens replaced by underscores.
-        
+
         :param outdir: The root directory of the project. Relative to this directory, all files are synthesized. \
             If this project has a parent, this directory is relative to the parent directory and it cannot be the \
             same as the parent or any of it's other sub-projects. Default: "."
-        
+
         :param parent: The parent project, if this project is part of a bigger project.
         """
         super().__init__(repo)
@@ -98,6 +98,13 @@ class MetaflowProject(Component):
             tests_outdir=Path("domains") / domain / (outdir or name),
         )
 
+        # TODO: make it so this doesn't eternally regenerate after deleting
+        self.init_py = LazySampleFile(
+            self.repo,
+            file_path=self.outdir / ".python-version",
+            get_contents_fn=lambda: "3.11\n",
+        )
+
     def add_flow(  # noqa: PLR0913 -- Too many arguments in function definition
         self,
         filename: str,
@@ -119,8 +126,8 @@ class MetaflowProject(Component):
 
             💡 No flows found in the project MetaflowProject(name="{self.name}") in `.projenrc.py`.
 
-            You likely set up the MetaflowProject() correctly. 
-            
+            You likely set up the MetaflowProject() correctly.
+
             But it does not make sense to have a MetaflowProject with out at least one flow.
 
             Register a flow with `my_metaflow_project.add_flow(filename="my_flow.py")`.

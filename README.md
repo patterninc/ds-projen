@@ -8,7 +8,7 @@ TODOs
   - [ ] if it's false, raise an error if they don't provide a url to their Pipeline worksheet
   - [ ] raise an error `if docs_url is None and poc == False`
     - [ ] Prompt people to visit the clickup doc to fill out the Ops worksheet
-          Note that PR's are NOT to be approved for flows with `poc=False` if 
+          Note that PR's are NOT to be approved for flows with `poc=False` if
           the Ops worksheet has not been approved. In other words, to deploy a pipeline to prod,
           you must
 
@@ -151,24 +151,24 @@ Should be in `patterninc/ds-projen`
    - `project_name: str` e.g. `niche-insights` which would result in it being placed at `domains/content/niche-insights`
 
    - a method `forecasting_project.add_flow()` with params
-    
+
       - `relative_flow_path: str | Path` e.g. "path/to/some_flow.py" which would result in domains/content/niche-insights/path/to/some_flow.py being created as a sample file aka `domains/{domain}/{project_name}/{rel_fpath}`
 
       - a param called `runs_in_ci: bool` which causes the flow to be executed in CI (the python flow.py run command)
 
       - a param called `config_rel_fpath_ci: str | Path | None`
-      
+
       - `config_rel_fpath_non_prod: str | Path | None`
 
       - `config_rel_fpath_prod: str | Path | None` -- each of these determine which path if any gets passed to `python myflow.py ... --config ./configs/{config_rel_fpath}`. The path is relative to the `./configs/` folder
-  
+
 
   - The project should have a global `.github/workflows/<domain>-<project name>-ci-cd.yaml` with the following
 
     - if it's a PR, run tests, linting, projen synth
 
     <!-- What's a perimeter? What's the difference between prod and non-prod?  -->
-    - trigger a deploy to the default perimeter   
+    - trigger a deploy to the default perimeter  
 
     - if it's merge to main, trigger a deploy to the prod perimeter
 

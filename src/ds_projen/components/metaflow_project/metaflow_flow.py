@@ -43,7 +43,7 @@ class MetaflowFlow(Component):
     ) -> str:
         flow_template = dedent(f'''\
             """A Metaflow flow."""
-                               
+
             from metaflow import FlowSpec, step, pypi_base
 
             @pypi_base(

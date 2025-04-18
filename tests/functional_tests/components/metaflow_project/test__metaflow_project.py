@@ -86,7 +86,7 @@ def test__sample_flow_finishes_successfully(repository_fpath: Path):
     # create a .metaflowconfig/config_local.json file
     (repository_fpath / ".metaflowconfig").mkdir(exist_ok=True)
     (repository_fpath / ".metaflowconfig" / "config_local.json").write_text("{}")
-    
+
     # use subprocess to run `uv run sample_flow.py`
     # and check that it finishes successfully
     subprocess.run(
