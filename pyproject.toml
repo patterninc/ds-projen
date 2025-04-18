@@ -21,7 +21,6 @@ build-backend = "hatchling.build"
 # https://github.com/astral-sh/ruff?tab=readme-ov-file#configuration
 [tool.ruff]
 line-length = 119
-exclude = ['domains/advisory', 'domains/demand_generation']
 
 # https://docs.astral.sh/ruff/rules/
 [tool.ruff.lint]
