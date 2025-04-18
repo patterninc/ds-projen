@@ -37,9 +37,6 @@ def repository_fpath() -> Path:
 
         repo.synth()
 
-        # while True:
-        #     ...
-
         yield tmp_dir / DUMMY_REPO_NAME
 
 
@@ -111,10 +108,6 @@ def test__expected_jobs_are_generated_into_the_github_actions_workflow(repositor
 def test__metaflow_ci_cd_workflow_triggers(repository_fpath: Path):
     """Test that the Metaflow CI/CD workflow has correct trigger paths."""
     workflow_content = get_workflow_contents(repository_fpath)
-
-    from rich import print
-
-    print(workflow_content.keys())
 
     workflow_triggers: dict = workflow_content["on"]
 

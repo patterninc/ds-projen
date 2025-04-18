@@ -55,14 +55,13 @@ class PyprojectToml(Component):
         if not dependencies:
             dependencies = deepcopy(default_dependencies)
 
-        def _get_contents() -> dict:
-            return get_pyproject_toml_values(
-                package_name=self.package_name,
-                description=self.description,
-                dependencies=dependencies,
-                dependency_groups=dependency_groups,
-                requires_python=requires_python,
-            )
+        contents: dict = get_pyproject_toml_values(
+            package_name=self.package_name,
+            description=self.description,
+            dependencies=dependencies,
+            dependency_groups=dependency_groups,
+            requires_python=requires_python,
+        )
 
         # Refer to these docs to see why we set this up the way we do:
         # https://github.com/projen/projen/blob/main/src/javascript/node-package.ts#L666-L671
@@ -241,7 +240,7 @@ def get_poe_tasks() -> dict:
                     "shell": dedent("""\
                         echo "Serving coverage report on http://localhost:3333"
                         echo "Press Ctrl+C to stop the server"
-
+                        
                         python -m http.server 3333 --directory ./test-reports/htmlcov
                         """),
                 },
