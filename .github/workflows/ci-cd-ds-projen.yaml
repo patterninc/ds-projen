@@ -23,7 +23,7 @@ jobs:
         # https://github.com/gnprice/toml-cli
         run: |
           VERSION=$(uvx --from=toml-cli toml get --toml-path pyproject.toml project.version)
-          (git tag $VERSION && cho "Version $VERSION is valid.") || echo "Tag $VERSION already exists"
+          git tag $VERSION
 
   code-quality-checks:
     name: Lint, Format, and Static Code Quality Checks
@@ -96,11 +96,15 @@ jobs:
 
       - name: Set up uv
         uses: astral-sh/setup-uv@v5
+      
+      - name: Configure Git user
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
 
       - name: Push Version Tag
         # https://github.com/gnprice/toml-cli
         run: |
           VERSION=$(uvx --from=toml-cli toml get --toml-path pyproject.toml project.version)
-          git tag -a "v$VERSION" -m "Release version $VERSION"
-          git push origin "v$VERSION"
-          echo "Version $VERSION tagged successfully."
+          git tag "$VERSION" -m "Release version $VERSION"
+          git push origin "$VERSION"

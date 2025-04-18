@@ -103,6 +103,8 @@ exclude_also = [
 omit = ["tests/artifacts/*"]
 show_missing = true
 
+# Had to disable branch coverage because it was causing errors while generating coverage reports
+# DataError: Can't combine statement coverage data with branch data
 [tool.coverage.run]
 branch = false
 parallel = true
