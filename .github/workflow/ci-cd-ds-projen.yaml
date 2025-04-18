@@ -1,0 +1,98 @@
+name: Publish DS Projen
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  check-version:
+    name: Check Version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Check version
+        # https://github.com/gnprice/toml-cli
+        run: |
+          VERSION=$(uvx --from=toml-cli toml get --toml-path pyproject.toml project.version)
+          (git tag $VERSION && cho "Version $VERSION is valid.") || echo "Tag $VERSION already exists"
+
+  code-quality-checks:
+    name: Lint, Format, and Static Code Quality Checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Run pre-commit hooks
+        run: SKIP=no-commit-to-branch uvx pre-commit run --all-files
+
+  build-wheel:
+    name: Build Wheel
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Build Wheel
+        run: uv build --wheel
+
+      - name: Upload Wheel
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheel-dist
+          path: ./dist/
+
+  execute-tests:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Download Wheel
+        uses: actions/download-artifact@v4
+        with:
+          name: wheel-dist
+          path: ./dist/
+
+      - name: Install Wheel
+        run: |
+          uv venv
+          source .venv/bin/activate
+          uv pip install ./dist/*whl
+
+      - name: Run Tests against Wheel
+        run: ./run test:ci
+
+  tag-version:
+    needs: [check-version, code-quality-checks, build-wheel, execute-tests]
+    # if - this is a merge to main or push directly to the main branch
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    name: Tag Version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Push Version Tag
+        # https://github.com/gnprice/toml-cli
+        run: |
+          VERSION=$(uvx --from=toml-cli toml get --toml-path pyproject.toml project.version)
+          git tag -a "v$VERSION" -m "Release version $VERSION"
+          git push origin "v$VERSION"
+          echo "Version $VERSION tagged successfully."
